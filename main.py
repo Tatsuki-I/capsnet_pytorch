@@ -45,7 +45,9 @@ parser.add_argument('--tb-image-interval', type=int, default=100, metavar='N',
 parser.add_argument('--log-dir', '-o', default=None, metavar='LD',
 					help='directory under `runs` to output TensorBoard event file, reconstructed.png, and original.png (default: <DATETIME>)')
 parser.add_argument('--gpu', type=int, default=0, metavar='G',
-					help='id of the GPU to use (default: 0)')
+					help='id of the GPU to use (default: 0)'
+parser.add_argument('--dataset', type=str, default='mnist', metavar='D',
+					help='name of the Dataset to use (default: 0)')
 
 args = parser.parse_args()
 
@@ -72,22 +74,40 @@ torch.cuda.manual_seed(args.seed)
 
 
 # Setup data loaders for train/test data.
-train_dataset = datasets.MNIST(
-	'data', train=True, download=True, 
-	transform=transforms.Compose([
-		transforms.RandomCrop(padding=2, size=(28, 28)), # data augmentation
-		transforms.ToTensor(),
-		transforms.Normalize((0.1307,), (0.3081,))
-	])
-)
+if args.dataset = 'cifar10':
+	train_dataset = datasets.CIFAR10(
+		'data', train=True, download=True, 
+		transform=transforms.Compose([
+			transforms.RandomCrop(32, padding=4, size=(32, 32)), # data augmentation
+			transforms.ToTensor(),
+			transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+		])
+	)
 
-test_dataset = datasets.MNIST(
-	'data', train=False, download=True, 
-	transform=transforms.Compose([
-		transforms.ToTensor(),
-		transforms.Normalize((0.1307,), (0.3081,))
-	])
-)
+	test_dataset = datasets.CIFAR10(
+		'data', train=False, download=True,
+		transform=transforms.Compose([
+			transforms.ToTensor(),
+			transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+		])
+	)
+else:
+	train_dataset = datasets.MNIST(
+		'data', train=True, download=True, 
+		transform=transforms.Compose([
+			transforms.RandomCrop(padding=2, size=(28, 28)), # data augmentation
+			transforms.ToTensor(),
+			transforms.Normalize((0.1307,), (0.3081,))
+		])
+	)
+
+	test_dataset = datasets.MNIST(
+		'data', train=False, download=True,
+		transform=transforms.Compose([
+			transforms.ToTensor(),
+			transforms.Normalize((0.1307,), (0.3081,))
+		])
+	)
 
 kwargs = {'num_workers': 1, 'pin_memory': True} if (args.gpu >= 0) else {}
 
