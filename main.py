@@ -45,7 +45,7 @@ parser.add_argument('--tb-image-interval', type=int, default=100, metavar='N',
 parser.add_argument('--log-dir', '-o', default=None, metavar='LD',
 					help='directory under `runs` to output TensorBoard event file, reconstructed.png, and original.png (default: <DATETIME>)')
 parser.add_argument('--gpu', type=int, default=0, metavar='G',
-					help='id of the GPU to use (default: 0)'
+					help='id of the GPU to use (default: 0)')
 parser.add_argument('--dataset', type=str, default='mnist', metavar='D',
 					help='name of the Dataset to use (default: 0)')
 
