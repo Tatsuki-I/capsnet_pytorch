@@ -47,7 +47,7 @@ parser.add_argument('--log-dir', '-o', default=None, metavar='LD',
 parser.add_argument('--gpu', type=int, default=0, metavar='G',
 					help='id of the GPU to use (default: 0)')
 parser.add_argument('--dataset', type=str, default='mnist', metavar='D',
-					help='name of the Dataset to use (default: 0)')
+					help='name of the Dataset to use (default: mnist)')
 
 args = parser.parse_args()
 
@@ -74,7 +74,7 @@ torch.cuda.manual_seed(args.seed)
 
 
 # Setup data loaders for train/test data.
-if args.dataset = 'cifar10':
+if args.dataset == 'cifar10':
 	train_dataset = datasets.CIFAR10(
 		'data', train=True, download=True, 
 		transform=transforms.Compose([
