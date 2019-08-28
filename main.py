@@ -95,6 +95,7 @@ if args.dataset == 'cifar10':
 	channels=3
 	image_width=32
 	image_height=32
+	primary_capsules=2048
 else:
 	train_dataset = datasets.MNIST(
 		'data', train=True, download=True,
@@ -113,9 +114,10 @@ else:
 		])
 	)
 
-	channels=3
-	image_width=32
-	image_height=32
+	channels=1
+	image_width=28
+	image_height=28
+	primary_capsules=1152
 
 kwargs = {'num_workers': 1, 'pin_memory': True} if (args.gpu >= 0) else {}
 
