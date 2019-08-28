@@ -12,11 +12,11 @@ import torch.nn.functional as F
 
 
 class Conv1(nn.Module):
-	def __init__(self):
+	def __init__(self, channels):
 		super(Conv1, self).__init__()
 
 		self.conv = nn.Conv2d(
-			in_channels=1,
+			in_channels=channels,
 			out_channels=256,
 			kernel_size=9,
 			stride=1,
@@ -30,5 +30,5 @@ class Conv1(nn.Module):
 
 		h = self.relu(self.conv(x))
 		# h: [batch_size, 256, 20, 20]
-		
+
 		return h
