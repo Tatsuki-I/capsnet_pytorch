@@ -18,7 +18,7 @@ from decoder import Decoder
 
 
 class CapsuleNetwork(nn.Module):
-	def __init__(self, routing_iters=3, reconstruct=True, gpu=0):
+	def __init__(self, routing_iters=3, reconstruct=True, gpu=0, channels=1, image_width=28, image_height=28, primary_capsules=1152):
 		super(CapsuleNetwork, self).__init__()
 
 		self.gpu = gpu
@@ -27,17 +27,17 @@ class CapsuleNetwork(nn.Module):
 		# Build modules for CapsNet.
 
 		## Convolution layer
-		self.conv1 = Conv1()
+		self.conv1 = Conv1(channels=channels)
 
 		## PrimaryCaps layer
 		self.primary_caps = PrimaryCaps()
 
 		## DigitCaps layer
-		self.digit_caps = DigitCaps(routing_iters=routing_iters, gpu=gpu)
+		self.digit_caps = DigitCaps(routing_iters=routing_iters, gpu=gpu, primary_capsules=primary_capsules)
 
 		## Decoder for reconstruction
 		if reconstruct:
-			self.decoder = Decoder()
+			self.decoder = Decoder(channels=channels, image_width=image_width, image_height=image_height)
 
 	def forward(self, x):
 		# x: [bacch_size, 1, 28, 28]
@@ -66,7 +66,7 @@ class CapsuleNetwork(nn.Module):
 			reconstruction_loss = Variable(torch.zeros(1))
 			if self.gpu >= 0:
 				reconstruction_loss = reconstruction_loss.cuda(self.gpu)
-		
+
 		loss = margin_loss + reconstruction_loss
 
 		return loss, margin_loss, reconstruction_loss

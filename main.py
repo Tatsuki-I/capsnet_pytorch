@@ -34,7 +34,7 @@ parser.add_argument('--lr-decay-epoch', type=int, default=1, metavar='DE',
 					help='how many epochs to wait before decaying learning rate (default: 1)')
 parser.add_argument('--routing', type=int, default=3, metavar='R',
 					help='iteration numbers for dymanic routing b/w capsules (default: 3)')
-parser.add_argument('--no-reconstruct', dest='reconstruct', action='store_false', 
+parser.add_argument('--no-reconstruct', dest='reconstruct', action='store_false',
 					help='Disable reconstruction loss (default: False)')
 parser.add_argument('--seed', type=int, default=1, metavar='S',
 					help='random seed (default: 1)')
@@ -76,9 +76,9 @@ torch.cuda.manual_seed(args.seed)
 # Setup data loaders for train/test data.
 if args.dataset == 'cifar10':
 	train_dataset = datasets.CIFAR10(
-		'data', train=True, download=True, 
+		'data', train=True, download=True,
 		transform=transforms.Compose([
-			transforms.RandomCrop(32, padding=4, size=(32, 32)), # data augmentation
+			transforms.RandomCrop(padding=4, size=(32, 32)), # data augmentation
 			transforms.ToTensor(),
 			transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
 		])
@@ -91,9 +91,13 @@ if args.dataset == 'cifar10':
 			transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
 		])
 	)
+
+	channels=3
+	image_width=32
+	image_height=32
 else:
 	train_dataset = datasets.MNIST(
-		'data', train=True, download=True, 
+		'data', train=True, download=True,
 		transform=transforms.Compose([
 			transforms.RandomCrop(padding=2, size=(28, 28)), # data augmentation
 			transforms.ToTensor(),
@@ -109,25 +113,29 @@ else:
 		])
 	)
 
+	channels=3
+	image_width=32
+	image_height=32
+
 kwargs = {'num_workers': 1, 'pin_memory': True} if (args.gpu >= 0) else {}
 
 train_loader = torch.utils.data.DataLoader(
 	train_dataset,
-	batch_size=args.batch_size, 
-	shuffle=True, 
+	batch_size=args.batch_size,
+	shuffle=True,
 	**kwargs
 )
 
 test_loader = torch.utils.data.DataLoader(
 	test_dataset,
-	batch_size=args.test_batch_size, 
-	shuffle=True, 
+	batch_size=args.test_batch_size,
+	shuffle=True,
 	**kwargs
 )
 
 
 # Build CapsNet.
-model = CapsuleNetwork(routing_iters=args.routing, reconstruct=args.reconstruct, gpu=args.gpu)
+model = CapsuleNetwork(routing_iters=args.routing, reconstruct=args.reconstruct, gpu=args.gpu, channels=channels, image_width=image_width, image_height=image_height, primary_capsules=primary_capsules)
 if args.gpu >=0:
 	model = model.cuda(args.gpu)
 
@@ -210,11 +218,11 @@ def train(epoch):
 			epoch, batch_idx * args.batch_size, len(train_loader.dataset),
 			100. * batch_idx / len(train_loader), loss.item() )
 		)
-		
+
 		if args.reconstruct:
 			reconstructed = reconstruct_test_images()
 			vutils.save_image(reconstructed, os.path.join(log_dir, 'reconstructed.png'), normalize=True)
-		
+
 		n_iter = epoch * len(train_loader) + batch_idx
 
 		if n_iter % args.tb_log_interval == 0:
@@ -231,7 +239,7 @@ def train(epoch):
 		if args.reconstruct and (n_iter % args.tb_image_interval == 0):
 			# Log reconstructed test images to TensorBoard.
 			writer.add_image(
-				'reconstructed/iter_{}'.format(n_iter), 
+				'reconstructed/iter_{}'.format(n_iter),
 				vutils.make_grid(reconstructed, normalize=True)
 			)
 
@@ -251,7 +259,7 @@ def test(epoch):
 		data, target = Variable(data), Variable(target_one_hot)
 		if args.gpu >= 0:
 			data, target = data.cuda(args.gpu), target.cuda(args.gpu)
-		
+
 		with torch.no_grad():
 			output = model(data)
 
@@ -262,7 +270,7 @@ def test(epoch):
 		test_loss += loss
 		test_margin_loss += margin_loss
 		test_rec_loss += reconstruction_loss
-		
+
 		v_mag = torch.sqrt((output**2).sum(dim=2, keepdim=True))
 		pred = v_mag.data.max(1, keepdim=True)[1].cpu()
 		correct += pred.eq(target_indices.view_as(pred)).sum()

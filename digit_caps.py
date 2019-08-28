@@ -16,22 +16,22 @@ from squash import squash
 
 
 class DigitCaps(nn.Module):
-	def __init__(self, routing_iters, gpu):
+	def __init__(self, routing_iters, gpu, primary_capsules):
 		super(DigitCaps, self).__init__()
 
 		self.routing_iters = routing_iters
 		self.gpu = gpu
 
-		self.in_capsules = 1152
+		self.in_capsules = primary_capsules
 		self.in_capsule_size = 8
 		self.out_capsules = 10
 		self.out_capsule_size = 16
 
 		self.W = nn.Parameter(
 			torch.Tensor(
-				self.in_capsules, 
-				self.out_capsules, 
-				self.out_capsule_size, 
+				self.in_capsules,
+				self.out_capsules,
+				self.out_capsule_size,
 				self.in_capsule_size
 			)
 		)
@@ -61,7 +61,7 @@ class DigitCaps(nn.Module):
 
 		u_hat_detached = u_hat.detach()
 		# u_hat_detached: [batch_size, in_capsules=1152, out_capsules=10, out_capsule_size=16, 1]
-		# In forward pass, `u_hat_detached` = `u_hat`, and 
+		# In forward pass, `u_hat_detached` = `u_hat`, and
 		# in backward, no gradient can flow from `u_hat_detached` back to `u_hat`.
 
 		# Initialize routing logits to zero.
@@ -81,7 +81,7 @@ class DigitCaps(nn.Module):
 				# Apply routing `c_ij` to weighted inputs `u_hat`.
 				s_j = (c_ij * u_hat).sum(dim=1, keepdim=True) # element-wise product
 				# s_j: [batch_size, 1, out_capsules=10, out_capsule_size=16, 1]
-	
+
 				v_j = squash(s_j, dim=3)
 				# v_j: [batch_size, 1, out_capsules=10, out_capsule_size=16, 1]
 
@@ -89,14 +89,14 @@ class DigitCaps(nn.Module):
 				# Apply routing `c_ij` to weighted inputs `u_hat`.
 				s_j = (c_ij * u_hat_detached).sum(dim=1, keepdim=True) # element-wise product
 				# s_j: [batch_size, 1, out_capsules=10, out_capsule_size=16, 1]
-	
+
 				v_j = squash(s_j, dim=3)
 				# v_j: [batch_size, 1, out_capsules=10, out_capsule_size=16, 1]
-	
+
 				# Compute inner products of 2 16D-vectors, `u_hat` and `v_j`.
 				u_vj1 = torch.matmul(u_hat_detached.transpose(3, 4), v_j).squeeze(4).mean(dim=0, keepdim=False)
 				# u_vj1: [in_capsules=1152, out_capsules=10, 1]
-	
+
 				# Update b_ij (routing).
 				b_ij = b_ij + u_vj1
 
