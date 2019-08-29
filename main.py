@@ -6,6 +6,8 @@
 from __future__ import print_function
 import argparse
 
+import math
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -75,10 +77,14 @@ torch.cuda.manual_seed(args.seed)
 
 # Setup data loaders for train/test data.
 if args.dataset == 'cifar10':
+	channels=3
+	image_width=32
+	image_height=32
+
 	train_dataset = datasets.CIFAR10(
 		'data', train=True, download=True,
 		transform=transforms.Compose([
-			transforms.RandomCrop(padding=4, size=(32, 32)), # data augmentation
+			transforms.RandomCrop(padding=4, size=(image_width, image_height)), # data augmentation
 			transforms.ToTensor(),
 			transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
 		])
@@ -91,16 +97,15 @@ if args.dataset == 'cifar10':
 			transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
 		])
 	)
-
-	channels=3
-	image_width=32
-	image_height=32
-	primary_capsules=2048
 else:
+	channels=1
+	image_width=28
+	image_height=28
+
 	train_dataset = datasets.MNIST(
 		'data', train=True, download=True,
 		transform=transforms.Compose([
-			transforms.RandomCrop(padding=2, size=(28, 28)), # data augmentation
+			transforms.RandomCrop(padding=2, size=(image_width, image_height)), # data augmentation
 			transforms.ToTensor(),
 			transforms.Normalize((0.1307,), (0.3081,))
 		])
@@ -114,10 +119,7 @@ else:
 		])
 	)
 
-	channels=1
-	image_width=28
-	image_height=28
-	primary_capsules=1152
+primary_capsules=32 * ((math.floor(((image_width - 17) / 2)) + 1) ** 2)
 
 kwargs = {'num_workers': 1, 'pin_memory': True} if (args.gpu >= 0) else {}
 
